@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sqlite3 # nous importons le paquet Python capable d'interagir avec sqlite
 
 db_loc = sqlite3.connect('Notes.db')
