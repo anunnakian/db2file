@@ -7,7 +7,7 @@ from classes import *
 import pickle
 
 # you can change these values to test your case :)
-file_to_read = "marks.data"
+file_to_read = "./data/marks.data"
 
 with open(file_to_read, 'rb') as input:
     obj = pickle.load(input)
