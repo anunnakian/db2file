@@ -14,8 +14,11 @@ import sys
 from sqlalchemy import *
 import sqlalchemy
 
+SERVER_TYPE = {'mysql': 'mysql://{0}:{1}@{2}/{3}', 'sqlite': '', 'oracle': 'oracle://{0}:{1}@{2}/{3}', 'postgresql': '',
+               'sqlserver': ''}
+
 file = 'classes.py'
-url = 'mysql://root:glbtyoung@localhost/4jva'
+
 
 def welcome():
     print("****************************************************************")
@@ -24,7 +27,20 @@ def welcome():
     print("SQLaCodeGen version: " + sqlacodegen.version)
 
 
-def generate():
+# build database link from parameters
+def build_url(args):
+    if args.type in SERVER_TYPE:
+        print(args.server)
+        url = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database)
+        print("URL = " + url)
+    else:
+        print("Database Server Type not recognized!", file=sys.stderr)
+        exit(1)
+
+    return url
+
+
+def generate(url):
     print("Generating SQLAlchemy model code from an existing database...")
     engine = create_engine(url)
     metadata = MetaData(bind=engine)
@@ -37,35 +53,33 @@ def generate():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Build Database URL from parameters.')
+    parser.add_argument('-t', '--type', help='Database server type', required=True)
+    parser.add_argument('-s', '--server', help='Database server type', default="localhost")
+    parser.add_argument('-P', '--port', help='Database server type', required=False)
+    parser.add_argument('-u', '--username', help='Database server type', required=True)
+    parser.add_argument('-p', '--password', help='Database server type', required=True)
+    parser.add_argument('-d', '--database', help='Database name', required=True)
+    parser.add_argument('--update', help='Update generated SQLAlchemy model', required=False, action='store_true')
+    args = parser.parse_args()
+
+    # if not url:
+    #     print('You must supply a url\n', file=sys.stderr)
+    #     parser.print_help()
+    #         exit(1)
+
+    url = build_url(args)
     welcome()
 
-    if (os.path.isfile(file)):
+    if (os.path.isfile(file) and not args.update):
         print("SQLAlchemy model code already generated.")
     else:
-        parser = argparse.ArgumentParser(description='Generates SQLAlchemy model code from an existing database.')
-        parser.add_argument('url', nargs='?', help='SQLAlchemy url to the database')
-        parser.add_argument('--schema', help='load tables from an alternate schema')
-        parser.add_argument('--tables', help='tables to process (comma-separated, default: all)')
-        parser.add_argument('--noviews', action='store_true', help="ignore views")
-        parser.add_argument('--noindexes', action='store_true', help='ignore indexes')
-        parser.add_argument('--noconstraints', action='store_true', help='ignore constraints')
-        parser.add_argument('--nojoined', action='store_true', help="don't autodetect joined table inheritance")
-        parser.add_argument('--noinflect', action='store_true', help="don't try to convert tables names to singular form")
-        parser.add_argument('--noclasses', action='store_true', help="don't generate classes, only tables")
-        parser.add_argument('--outfile', help='file to write output to (default: stdout)')
-        args = parser.parse_args()
-
-        if not url:
-            print('You must supply a url\n', file=sys.stderr)
-            parser.print_help()
-            exit(1)
-
         engine = create_engine(url)
         metadata = MetaData(bind=engine)
 
         from multiprocessing import Process
 
-        generator = Process(target=generate)
+        generator = Process(target=generate, args=(url,))
         generator.start()
         generator.join()
 
