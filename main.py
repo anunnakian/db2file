@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division, print_function, absolute_import
-
 import os
-
 import argparse
 from sqlacodegen.codegen import CodeGenerator
 import sqlacodegen
 from sqlalchemy.orm import create_session
-
 import codecs
 import sys
-
 from sqlalchemy import *
-import sqlalchemy
+import base64
+import json
 
 SERVER_TYPE = {'mysql': 'mysql://{0}:{1}@{2}/{3}', 'sqlite': 'sqlite://{4}', 'oracle': 'oracle://{0}:{1}@{2}/{3}', 'postgresql': 'postgresql://{0}:{1}@{2}/{3}',
                'mssql': 'mssql://{0}:{1}@{2}/{3}'}
@@ -103,8 +100,10 @@ if __name__ == '__main__':
     for name, obj in inspect.getmembers(classes):
         # get a list of generated classes only, without other classes like 'Integer','DateTime'...etc
         if inspect.isclass(obj) and obj.__module__ == 'classes':
-            # print the class name
-            testlist = session.query(obj).all()
-            print(len(testlist))
+            print("fetching table"+obj.__tablename__)
+            data = session.query(obj).all()
             with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
-                pickle.dump(testlist, output, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(data, output, pickle.HIGHEST_PROTOCOL)
+
+
+
