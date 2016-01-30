@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division, print_function, absolute_import
-
 import os
-
 import argparse
 from sqlacodegen.codegen import CodeGenerator
 import sqlacodegen
 from sqlalchemy.orm import create_session
-
 import codecs
 import sys
-
 from sqlalchemy import *
-import sqlalchemy
+import base64
+import json
 
-SERVER_TYPE = {'mysql': 'mysql://{0}:{1}@{2}/{3}', 'sqlite': '', 'oracle': 'oracle://{0}:{1}@{2}/{3}', 'postgresql': '',
-               'sqlserver': ''}
+SERVER_TYPE = {'mysql': 'mysql://{0}:{1}@{2}/{3}', 'sqlite': 'sqlite://{4}', 'oracle': 'oracle://{0}:{1}@{2}/{3}', 'postgresql': 'postgresql://{0}:{1}@{2}/{3}',
+               'mssql': 'mssql://{0}:{1}@{2}/{3}'}
 
 file = 'classes.py'
 
@@ -31,7 +28,7 @@ def welcome():
 def build_url(args):
     if args.type in SERVER_TYPE:
         print(args.server)
-        url = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database)
+        url = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database,args.location)
         print("URL = " + url)
     else:
         print("Database Server Type not recognized!", file=sys.stderr)
@@ -55,14 +52,17 @@ def generate(url):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Build Database URL from parameters.')
     parser.add_argument('-t', '--type', help='Database server type', required=True)
+    args = parser.parse_known_args()
+    server_param_required = args[0].type != 'sqlite'
     parser.add_argument('-s', '--server', help='Database server type', default="localhost")
-    parser.add_argument('-P', '--port', help='Database server type', required=False)
-    parser.add_argument('-u', '--username', help='Database server type', required=True)
-    parser.add_argument('-p', '--password', help='Database server type', required=True)
-    parser.add_argument('-d', '--database', help='Database name', required=True)
+    parser.add_argument('-u', '--username', help='Database server type', required=server_param_required)
+    parser.add_argument('-p', '--password', help='Database server type', required=server_param_required)
+    parser.add_argument('-d', '--database', help='Database name', required=server_param_required)
     parser.add_argument('--update', help='Update generated SQLAlchemy model', required=False, action='store_true')
-    args = parser.parse_args()
+    parser.add_argument('-l', '--location', help='Database path', required= not server_param_required)
 
+
+    args = parser.parse_args()
     # if not url:
     #     print('You must supply a url\n', file=sys.stderr)
     #     parser.print_help()
@@ -100,8 +100,10 @@ if __name__ == '__main__':
     for name, obj in inspect.getmembers(classes):
         # get a list of generated classes only, without other classes like 'Integer','DateTime'...etc
         if inspect.isclass(obj) and obj.__module__ == 'classes':
-            # print the class name
-            testlist = session.query(obj).all()
-            print(len(testlist))
+            print("fetching table"+obj.__tablename__)
+            data = session.query(obj).all()
             with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
-                pickle.dump(testlist, output, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(data, output, pickle.HIGHEST_PROTOCOL)
+
+
+
