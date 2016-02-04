@@ -2,11 +2,12 @@
 import os
 
 import argparse
-from sqlacodegen.codegen import CodeGenerator
 import sqlacodegen
 from sqlalchemy.orm import create_session
-
 import codecs
+from sqlacodegen.codegen import *
+from utils import *
+
 import sys
 
 from sqlalchemy import *
@@ -27,9 +28,9 @@ def welcome():
 # build database link from parameters
 def build_url(args):
     if args.type in SERVER_TYPE:
-        print(args.server)
+        print("Server Type : " + args.server)
         url = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database, args.location)
-        print("URL = " + url)
+        print("Database connectionString = " + url)
     else:
         print("Database Server Type not recognized!")
         exit(1)
@@ -39,12 +40,15 @@ def build_url(args):
 
 def generate(url):
     print("Generating SQLAlchemy model code from an existing database...")
+
+    # repetition -- Mr.Rachid will found a solution for this
     engine = create_engine(url)
     metadata = MetaData(bind=engine)
-    metadata.reflect(engine, schema=None, views=True, only=None)
+
+    metadata.reflect(engine, views=True)
     outfile = codecs.open(file, 'w', encoding='utf-8') if file else sys.stdout
     generator = CodeGenerator(metadata, noindexes=False, noconstraints=False, nojoined=False, noinflect=False,
-                              noclasses=False)
+                              noclasses=False) # , class_model=BD2CModelClass
     generator.render(outfile)
     print("Generated [OK].")
 
@@ -52,6 +56,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Build Database URL from parameters.')
     parser.add_argument('-t', '--type', help='Database server type', required=True)
     args = parser.parse_known_args()
+
     server_param_required = args[0].type != 'sqlite'
     parser.add_argument('-s', '--server', help='Database server type', default="localhost")
     parser.add_argument('-u', '--username', help='Database server type', required=server_param_required)
@@ -70,22 +75,20 @@ if __name__ == '__main__':
     url = build_url(args)
     welcome()
 
+    # Connect to the database
+    engine = create_engine(url)
+    metadata = MetaData(bind=engine)
+
     if os.path.isfile(file) and not args.update:
         print("SQLAlchemy model code already generated.")
     else:
-        engine = create_engine(url)
-        metadata = MetaData(bind=engine)
-
+        # Generate SQLAlchemy Model from Database
         from multiprocessing import Process
-
         generator = Process(target=generate, args=(url,))
         generator.start()
         generator.join()
 
-    engine = create_engine(url)
-    metadata = MetaData(bind=engine)
-
-    from classes import *
+    # import generated classes
     import classes
     import inspect
     import pickle
@@ -99,7 +102,8 @@ if __name__ == '__main__':
             print("\nRetrieving data from Table \"" + obj.__tablename__ + "\" ...")
 
             data = session.query(obj).all()
+
             with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
-                pickle.dump(data, output, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(data, output)
 
             print("Finished successfully [OK]")
