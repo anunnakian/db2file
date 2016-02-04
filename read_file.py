@@ -12,4 +12,4 @@ file_to_read = "./data/st_car.data"
 with open(file_to_read, 'rb') as input:
     obj = pickle.load(input)
     print(obj[0].BRAND)
-    print(obj[0].st_user)
+    print(obj[0].st_user.EMAIL)

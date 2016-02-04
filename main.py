@@ -7,6 +7,7 @@ from sqlalchemy.orm import create_session
 import codecs
 from sqlacodegen.codegen import *
 from utils import *
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 import sys
 
@@ -102,6 +103,12 @@ if __name__ == '__main__':
             print("\nRetrieving data from Table \"" + obj.__tablename__ + "\" ...")
 
             data = session.query(obj).all()
+            if len(data) > 0:
+                for instance in data:
+                    for field in [x for x in dir(instance) if not x.startswith('_') and x != 'metadata']:
+                        value = instance.__getattribute__(field)
+                        # if isinstance(value.__class__, DeclarativeMeta):
+                        #     print(value)
 
             with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
                 pickle.dump(data, output)
