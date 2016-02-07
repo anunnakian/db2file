@@ -30,7 +30,7 @@ def build_url(args):
     if args.type in SERVER_TYPE:
         print("Server Type : " + args.server)
         connect_string = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database, args.location)
-        print("Database connectionString = " + url)
+        print("Database connectionString = " + connect_string)
     else:
         print("Database Server Type not recognized!")
         exit(1)
