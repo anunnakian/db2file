@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import BigInteger, Column, DateTime, Float, ForeignKey, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -8,20 +8,36 @@ Base = declarative_base()
 metadata = Base.metadata
 
 
-class Mark(Base):
-    __tablename__ = 'marks'
+class Etudiant(Base):
+    __tablename__ = 'etudiants'
 
-    ID = Column(BigInteger, primary_key=True)
-    COURSENAME = Column(String(255))
-    MARKVALUE = Column(Float)
-    STUDENT_ID = Column(ForeignKey(u'students.ID'), index=True)
+    ID = Column(Integer, primary_key=True)
+    Nom = Column(String(50), nullable=False)
+    Prenom = Column(String(50), nullable=False)
+    Email = Column(String(50), nullable=False)
+    filier_id = Column(ForeignKey(u'filieres.ID'), nullable=False, index=True)
 
-    student = relationship(u'Student')
+    filier = relationship(u'Filiere')
 
 
-class Student(Base):
-    __tablename__ = 'students'
+class Filiere(Base):
+    __tablename__ = 'filieres'
 
-    ID = Column(BigInteger, primary_key=True)
-    CREATIONDATE = Column(DateTime)
-    NAME = Column(String(255))
+    ID = Column(Integer, primary_key=True)
+    Nom = Column(String(50), nullable=False)
+
+    modules = relationship(u'Module', secondary='filieres_modules')
+
+
+t_filieres_modules = Table(
+    'filieres_modules', metadata,
+    Column('id_filiere', ForeignKey(u'filieres.ID'), primary_key=True, nullable=False),
+    Column('id_module', ForeignKey(u'modules.ID'), primary_key=True, nullable=False, index=True)
+)
+
+
+class Module(Base):
+    __tablename__ = 'modules'
+
+    ID = Column(Integer, primary_key=True)
+    Nom = Column(String(50), nullable=False)

@@ -3,13 +3,14 @@ import os
 
 import argparse
 import sqlacodegen
-from sqlalchemy.orm import create_session
+from sqlalchemy.orm import create_session,eagerload_all
 import codecs
 from sqlacodegen.codegen import *
 
 import sys
 
 from sqlalchemy import *
+
 
 SERVER_TYPE = {'mysql': 'mysql://{0}:{1}@{2}/{3}', 'sqlite': 'sqlite://{4}', 'oracle': 'oracle://{0}:{1}@{2}/{3}',
                'postgresql': 'postgresql://{0}:{1}@{2}/{3}',
@@ -101,14 +102,16 @@ if __name__ == '__main__':
             print("\nRetrieving data from Table \"" + obj.__tablename__ + "\" ...")
 
             # similar to "select * from Table"
-            data = session.query(obj).all()
+            data = session.query(obj).options(eagerload_all("*")).all()
 
             # loading the lazy-loaded attribute (relationships)
             if len(data) > 0:
                 for instance in data:
                     for field in [x for x in dir(instance) if not x.startswith('_') and x != 'metadata']:
                         value = instance.__getattribute__(field)
-
+            #cree le repertoire data s'il n'existe pas
+            if not os.path.exists('data'):
+             os.mkdir('data')
             # save the object list in a binary file (serialization)
             with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
                 pickle.dump(data, output)
