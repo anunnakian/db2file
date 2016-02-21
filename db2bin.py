@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import argparse
 from sqlalchemy.orm import create_session
 from sqlalchemy.orm import eagerload_all
@@ -107,9 +108,11 @@ if __name__ == '__main__':
                 for instance in data:
                     for field in [x for x in dir(instance) if not x.startswith('_') and x != 'metadata']:
                         value = instance.__getattribute__(field)
-            #cree le repertoire data s'il n'existe pas
+
+            # make directory if doesn't exist
             if not os.path.exists('data'):
-             os.mkdir('data')
+                os.mkdir('data')
+
             # save the object list in a binary file (serialization)
             with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
                 pickle.dump(data, output)
