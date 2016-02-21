@@ -108,12 +108,6 @@ if __name__ == '__main__':
             # similar to "select * from Table"
             data = session.query(obj).options(eagerload_all("*")).all()
 
-            # loading the lazy-loaded attribute (relationships)
-            if len(data) > 0:
-                for instance in data:
-                    for field in [x for x in dir(instance) if not x.startswith('_') and x != 'metadata']:
-                        value = instance.__getattribute__(field)
-
             # make directory if doesn't exist
             if not os.path.exists('data'):
                 os.mkdir('data')
