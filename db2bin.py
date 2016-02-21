@@ -31,8 +31,7 @@ def welcome():
 def build_url(args):
     if args.type in SERVER_TYPE:
         print("Server Type : " + args.server)
-        connect_string = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database,
-                                                       args.location)
+        connect_string = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database, args.location)
         print("Database connectionString = " + connect_string)
     else:
         print("Database Server Type not recognized!")
@@ -108,9 +107,11 @@ if __name__ == '__main__':
                 for instance in data:
                     for field in [x for x in dir(instance) if not x.startswith('_') and x != 'metadata']:
                         value = instance.__getattribute__(field)
-
+            #cree le repertoire data s'il n'existe pas
+            if not os.path.exists('data'):
+             os.mkdir('data')
             # save the object list in a binary file (serialization)
-            with open("data/" + obj.__tablename__ + '.bin', 'wb') as output:
+            with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
                 pickle.dump(data, output)
 
             print("Finished successfully [OK]")
