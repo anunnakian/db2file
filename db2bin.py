@@ -114,7 +114,7 @@ if __name__ == '__main__':
                 os.mkdir('data')
 
             # save the object list in a binary file (serialization)
-            with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
+            with open("data/" + obj.__tablename__ + '.bin', 'wb') as output:
                 pickle.dump(data, output)
 
             print("Finished successfully [OK]")
