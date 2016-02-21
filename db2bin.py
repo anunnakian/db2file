@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-import os
-
 import argparse
-import sqlacodegen
 from sqlalchemy.orm import create_session
+from sqlalchemy.orm import eagerload_all
 import codecs
 from sqlacodegen.codegen import *
+
 
 import sys
 
 from sqlalchemy import *
 
-SERVER_TYPE = {'mysql': 'mysql://{0}:{1}@{2}/{3}', 'sqlite': 'sqlite://{4}', 'oracle': 'oracle://{0}:{1}@{2}/{3}',
+VERSION = "1.1"
+SERVER_TYPE = {'mysql': 'mysql://{0}:{1}@{2}/{3}',
+               'sqlite': 'sqlite://{4}',
+               'oracle': 'oracle://{0}:{1}@{2}/{3}',
                'postgresql': 'postgresql://{0}:{1}@{2}/{3}',
                'mssql': 'mssql://{0}:{1}@{2}/{3}'}
 
@@ -19,17 +21,18 @@ output_filename = 'classes.py'
 
 
 def welcome():
-    print("****************************************************************")
-    print("* Master Spécialisé Big Data & Cloud Computing, Promotion 2015 *")
-    print("****************************************************************")
-    print("SQLaCodeGen version: " + sqlacodegen.version)
+    print("***********************************************************")
+    print("*   Master Spécialisé Big Data & Cloud Computing - BD2C   *")
+    print("***********************************************************")
+    print("version: " + VERSION)
 
 
 # build database link from parameters
 def build_url(args):
     if args.type in SERVER_TYPE:
         print("Server Type : " + args.server)
-        connect_string = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database, args.location)
+        connect_string = SERVER_TYPE[args.type].format(args.username, args.password, args.server, args.database,
+                                                       args.location)
         print("Database connectionString = " + connect_string)
     else:
         print("Database Server Type not recognized!")
@@ -48,9 +51,10 @@ def generate(connect_string):
     metadata.reflect(engine, views=True)
     outfile = codecs.open(output_filename, 'w', encoding='utf-8') if output_filename else sys.stdout
     generator = CodeGenerator(metadata, noindexes=False, noconstraints=False, nojoined=False, noinflect=False,
-                              noclasses=False) # , class_model=BD2CModelClass
+                              noclasses=False)
     generator.render(outfile)
     print("Generated [OK].")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Build Database URL from parameters.')
@@ -64,12 +68,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--database', help='Database name', required=server_param_required)
     parser.add_argument('-l', '--location', help='Database path', required=not server_param_required)
     parser.add_argument('-o', '--output', help='Output file', required=False)
-
     args = parser.parse_args()
-    # if not url:
-    #     print('You must supply a url\n', file=sys.stderr)
-    #     parser.print_help()
-    #         exit(1)
 
     # building connection string
     url = build_url(args)
@@ -81,6 +80,7 @@ if __name__ == '__main__':
 
     # Generate SQLAlchemy Model from Database
     from multiprocessing import Process
+
     gen_process = Process(target=generate, args=(url,))
     gen_process.start()
     gen_process.join()
@@ -101,7 +101,7 @@ if __name__ == '__main__':
             print("\nRetrieving data from Table \"" + obj.__tablename__ + "\" ...")
 
             # similar to "select * from Table"
-            data = session.query(obj).all()
+            data = session.query(obj).options(eagerload_all("*")).all()
 
             # loading the lazy-loaded attribute (relationships)
             if len(data) > 0:
@@ -110,7 +110,7 @@ if __name__ == '__main__':
                         value = instance.__getattribute__(field)
 
             # save the object list in a binary file (serialization)
-            with open("data/" + obj.__tablename__ + '.data', 'wb') as output:
+            with open("data/" + obj.__tablename__ + '.bin', 'wb') as output:
                 pickle.dump(data, output)
 
             print("Finished successfully [OK]")

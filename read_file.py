@@ -7,9 +7,8 @@ from classes import *
 import pickle
 
 # you can change these values to test your case :)
-file_to_read = "./data/st_car.data"
+file_to_read = "./data/etudiants.bin"
 
 with open(file_to_read, 'rb') as input:
     obj = pickle.load(input)
-    print(obj[0].BRAND)
-    print(obj[0].st_user.EMAIL)
+    print(obj[0].filier)
