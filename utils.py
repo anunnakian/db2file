@@ -33,10 +33,9 @@ class AlchemyEncoder(json.JSONEncoder):
 
 
 def get_fields(obj):
-    fields = {}
+    fields = []
     for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
         value = obj.__getattribute__(field)
-        print(type(value))
         if isinstance(value, datetime.datetime):
             fields[field] = value.__str__()
         else:

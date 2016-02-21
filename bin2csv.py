@@ -27,6 +27,7 @@ if __name__ == '__main__':
         # loading the list of all stored objects from serialized-file
         data = pickle.load(input)
 
+
         write_header = True
         item_keys = []
 
@@ -41,6 +42,7 @@ if __name__ == '__main__':
                     writer.writerow(item_keys)
                     for item in data:
                         writer.writerow(write_csv(item.__dict__))
+            print("CSV file created [OK]")
         else:
             # write the generated csv on the screen
             if len(data) > 0:

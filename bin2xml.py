@@ -15,8 +15,8 @@ if __name__ == '__main__':
     with open(args.path, 'rb') as input:
         # loading the list of all stored objects from serialized-file
         obj = pickle.load(input)
-        print(get_fields(obj[0]))
         obj = {"data": get_fields(obj[0])}
 
         xml = dicttoxml.dicttoxml(obj)
+
         print xml

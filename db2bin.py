@@ -75,8 +75,13 @@ if __name__ == '__main__':
     welcome()
 
     # Connect to the database
-    engine = create_engine(url)
-    metadata = MetaData(bind=engine)
+    try:
+        engine = create_engine(url)
+        metadata = MetaData(bind=engine)
+        engine.connect()
+    except:
+        print("Can't connect to database server. Verify your input parameters")
+        exit(1)
 
     # Generate SQLAlchemy Model from Database
     from multiprocessing import Process
