@@ -79,8 +79,8 @@ if __name__ == '__main__':
         engine = create_engine(url)
         metadata = MetaData(bind=engine)
         engine.connect()
-    except:
-        print("Can't connect to database server. Verify your input parameters")
+    except Exception as err:
+        print("Can't connect to database server. Verify your input parameters:\n%s" %err)
         exit(1)
 
     # Generate SQLAlchemy Model from Database
